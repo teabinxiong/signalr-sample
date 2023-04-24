@@ -22,10 +22,13 @@ app.UseRouting();
 
 app.UseAuthorization();
 
-app.MapHub<LearningHub>("/learningHub");
 
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+app.MapHub<LearningHub>("/learningHub");
+
+app.UseBlazorFrameworkFiles();
 
 app.Run();
