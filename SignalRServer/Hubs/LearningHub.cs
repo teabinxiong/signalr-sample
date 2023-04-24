@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.SignalR;
+using System.Runtime.CompilerServices;
+using System.Threading;
 
 namespace SignalRServer.Hubs
 {
@@ -8,6 +10,14 @@ namespace SignalRServer.Hubs
         public async Task BroadcastMessage(string message)
         {
             await Clients.All.ReceiveMessage(message);
+        }
+
+        public async Task BroadcastStream(IAsyncEnumerable<string> stream)
+        {
+            await foreach (var item in stream)
+            {
+                 await Clients.Caller.ReceiveMessage($"Server received {item}");
+            }
         }
 
         public async Task SendToOthers(string message)
@@ -42,6 +52,21 @@ namespace SignalRServer.Hubs
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, groupName);
             await Clients.Caller.ReceiveMessage($"Current user removed from {groupName} group");
             await Clients.Others.ReceiveMessage($"User {Context.ConnectionId} removed from {groupName} group");
+        }
+
+
+        public async IAsyncEnumerable<string> TriggerStream(
+               int jobsCount,
+               [EnumeratorCancellation]
+               CancellationToken ct)
+        {
+            for (var i = 0; i < jobsCount; i++)
+            {
+                ct.ThrowIfCancellationRequested();
+                yield return $"Job {i} executed succesfully";
+                await Task.Delay(1000, ct);
+
+            }
         }
 
 
